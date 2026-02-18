@@ -245,13 +245,21 @@ class AgentFlowStack extends cdk.Stack {
             targets: [new targets.LambdaFunction(aiExecutor)]
         });
         
-        // I create the API Gateway
+        // I create the API Gateway with CORS enabled
         const api = new apigateway.RestApi(this, 'AgentFlowAPI', {
             restApiName: 'AgentFlow API',
             description: 'API for AgentFlow project management',
             defaultCorsPreflightOptions: {
-                allowOrigins: apigateway.Cors.ALL_ORIGINS,
-                allowMethods: apigateway.Cors.ALL_METHODS
+                allowOrigins: ['http://localhost:3000', 'https://*'],
+                allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+                allowHeaders: [
+                    'Content-Type',
+                    'X-Amz-Date',
+                    'Authorization',
+                    'X-Api-Key',
+                    'X-Amz-Security-Token'
+                ],
+                allowCredentials: true
             }
         });
         
