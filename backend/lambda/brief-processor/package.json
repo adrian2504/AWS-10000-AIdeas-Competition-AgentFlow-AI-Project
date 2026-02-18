@@ -1,0 +1,10 @@
+{
+  "name": "agentflow-brief-processor",
+  "version": "1.0.0",
+  "description": "Processes project briefs and extracts key information",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1400.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.400.0"
+  }
+}

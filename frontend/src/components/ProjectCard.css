@@ -1,0 +1,66 @@
+/* I style project cards on the dashboard */
+
+.project-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #e9ecef;
+}
+
+.project-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.project-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+}
+
+.project-card-header h3 {
+    font-size: 18px;
+    color: #2c3e50;
+    flex: 1;
+}
+
+.status-indicator {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+}
+
+.project-card-body {
+    margin-bottom: 16px;
+}
+
+.project-brief {
+    font-size: 14px;
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.project-stats-mini {
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.project-card-footer {
+    padding-top: 12px;
+    border-top: 1px solid #e9ecef;
+}
+
+.project-date {
+    font-size: 12px;
+    color: #adb5bd;
+}

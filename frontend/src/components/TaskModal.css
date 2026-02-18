@@ -1,0 +1,160 @@
+/* I style the task detail modal */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 12px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    padding: 24px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.modal-header h2 {
+    font-size: 22px;
+    color: #2c3e50;
+    flex: 1;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: #adb5bd;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+}
+
+.close-button:hover {
+    color: #6c757d;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-queued {
+    background-color: #e9ecef;
+    color: #6c757d;
+}
+
+.status-in_progress {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-review {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+
+.status-done {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-failed {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.section {
+    margin-bottom: 24px;
+}
+
+.section h3 {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.section p {
+    font-size: 14px;
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+.routing-reason {
+    background-color: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #3498db;
+}
+
+.task-output {
+    background-color: #f8f9fa;
+    padding: 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.section textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    margin-bottom: 12px;
+}
+
+.section textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.review-section {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.review-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}

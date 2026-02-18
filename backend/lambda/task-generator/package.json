@@ -1,0 +1,10 @@
+{
+  "name": "agentflow-task-generator",
+  "version": "1.0.0",
+  "description": "Generates atomic tasks from project briefs",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1400.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.400.0"
+  }
+}
