@@ -10,12 +10,13 @@ exports.handler = async (event) => {
         const { httpMethod, path, pathParameters, body } = event;
         
         // I route to the appropriate handler based on the HTTP method and path
-        if (httpMethod === 'GET' && path.includes('/projects')) {
-            return await getProjects(event);
-        }
-        
+        // Check for tasks first since the path contains both /projects and /tasks
         if (httpMethod === 'GET' && path.includes('/tasks')) {
             return await getTasks(pathParameters.projectId);
+        }
+        
+        if (httpMethod === 'GET' && path.includes('/projects')) {
+            return await getProjects(event);
         }
         
         if (httpMethod === 'POST' && path.includes('/tasks')) {
@@ -142,7 +143,8 @@ async function updateTask(data) {
     };
     
     if (output) {
-        updateParams.UpdateExpression += ', output = :output';
+        updateParams.UpdateExpression += ', #output = :output';
+        updateParams.ExpressionAttributeNames['#output'] = 'output';
         updateParams.ExpressionAttributeValues[':output'] = output;
     }
     

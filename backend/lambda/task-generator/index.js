@@ -95,7 +95,7 @@ Generate 8-15 tasks that cover the entire project. Make them small and independe
 Respond in JSON format as an array of task objects.`;
 
     const command = new InvokeModelCommand({
-        modelId: 'anthropic.claude-sonnet-4-20250514-v1:0',
+        modelId: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
         contentType: 'application/json',
         accept: 'application/json',
         body: JSON.stringify({
@@ -133,7 +133,7 @@ For each task, list the indices of tasks that must be completed before it can st
 Respond in JSON format: { "0": [], "1": [0], "2": [0, 1], ... }`;
 
     const command = new InvokeModelCommand({
-        modelId: 'anthropic.claude-sonnet-4-20250514-v1:0',
+        modelId: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
         contentType: 'application/json',
         accept: 'application/json',
         body: JSON.stringify({

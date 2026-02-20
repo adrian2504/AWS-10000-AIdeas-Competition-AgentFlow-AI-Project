@@ -49,9 +49,10 @@ exports.handler = async (event) => {
         await dynamodb.update({
             TableName: process.env.TASKS_TABLE,
             Key: { taskId },
-            UpdateExpression: 'SET #status = :status, output = :output, outputLocation = :location, completedAt = :completedAt, updatedAt = :updatedAt',
+            UpdateExpression: 'SET #status = :status, #output = :output, outputLocation = :location, completedAt = :completedAt, updatedAt = :updatedAt',
             ExpressionAttributeNames: {
-                '#status': 'status'
+                '#status': 'status',
+                '#output': 'output'
             },
             ExpressionAttributeValues: {
                 ':status': 'REVIEW',
@@ -156,7 +157,7 @@ Please complete this task and provide:
 Respond in JSON format with keys: output, artifacts, recommendations, status`;
 
     const command = new InvokeModelCommand({
-        modelId: 'anthropic.claude-sonnet-4-20250514-v1:0',
+        modelId: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
         contentType: 'application/json',
         accept: 'application/json',
         body: JSON.stringify({

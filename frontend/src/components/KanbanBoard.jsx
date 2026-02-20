@@ -5,13 +5,12 @@ import React from 'react';
 import TaskCard from './TaskCard';
 import './KanbanBoard.css';
 
-function KanbanBoard({ board, onTaskClick, onTaskUpdate }) {
+function KanbanBoard({ board, onTaskClick, onStatusChange }) {
     const columns = [
         { key: 'QUEUED', title: 'Queued', icon: '📋' },
         { key: 'IN_PROGRESS', title: 'In Progress', icon: '⚙️' },
         { key: 'REVIEW', title: 'Review', icon: '👀' },
-        { key: 'DONE', title: 'Done', icon: '✅' },
-        { key: 'FAILED', title: 'Failed', icon: '❌' }
+        { key: 'DONE', title: 'Done', icon: '✅' }
     ];
     
     if (!board) {
@@ -41,6 +40,7 @@ function KanbanBoard({ board, onTaskClick, onTaskUpdate }) {
                                     key={task.taskId}
                                     task={task}
                                     onClick={() => onTaskClick(task)}
+                                    onStatusChange={onStatusChange}
                                 />
                             ))
                         )}

@@ -29,6 +29,9 @@ function Header() {
                         <button onClick={() => navigate('/new-project')}>
                             New Project
                         </button>
+                        <button onClick={() => navigate('/team')}>
+                            Team
+                        </button>
                     </nav>
                 </div>
                 

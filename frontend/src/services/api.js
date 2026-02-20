@@ -82,10 +82,42 @@ export async function reviewTask(taskId, approved, feedback = '') {
     });
 }
 
+// I fetch all team members
+export async function getTeamMembers() {
+    return apiRequest('/team');
+}
+
+// I add a new team member
+export async function addTeamMember(memberData) {
+    return apiRequest('/team', {
+        method: 'POST',
+        body: JSON.stringify(memberData)
+    });
+}
+
+// I update a team member
+export async function updateTeamMember(memberId, updates) {
+    return apiRequest(`/team/${memberId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+    });
+}
+
+// I delete a team member
+export async function deleteTeamMember(memberId) {
+    return apiRequest(`/team/${memberId}`, {
+        method: 'DELETE'
+    });
+}
+
 export default {
     createProject,
     getProjects,
     getTasks,
     updateTask,
-    reviewTask
+    reviewTask,
+    getTeamMembers,
+    addTeamMember,
+    updateTeamMember,
+    deleteTeamMember
 };

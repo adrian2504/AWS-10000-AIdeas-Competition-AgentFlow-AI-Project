@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getTasks, updateTask, reviewTask } from '../services/api';
 import KanbanBoard from '../components/KanbanBoard';
+import SprintView from '../components/SprintView';
 import TaskModal from '../components/TaskModal';
 import ProjectStats from '../components/ProjectStats';
 import './ProjectView.css';
@@ -12,10 +13,12 @@ import './ProjectView.css';
 function ProjectView() {
     const { projectId } = useParams();
     const [kanbanBoard, setKanbanBoard] = useState(null);
+    const [allTasks, setAllTasks] = useState([]);
     const [stats, setStats] = useState(null);
     const [selectedTask, setSelectedTask] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [activeView, setActiveView] = useState('kanban'); // 'kanban' or 'sprint'
     
     useEffect(() => {
         loadTasks();
@@ -27,14 +30,27 @@ function ProjectView() {
     
     async function loadTasks() {
         try {
+            console.log('Loading tasks for project:', projectId);
             const data = await getTasks(projectId);
+            console.log('Tasks loaded:', data);
             setKanbanBoard(data.kanbanBoard);
+            setAllTasks(data.tasks || []);
             setStats(data.stats);
             setLoading(false);
         } catch (err) {
-            setError('Failed to load tasks');
-            console.error(err);
+            console.error('Error loading tasks:', err);
+            setError(`Failed to load tasks: ${err.message}`);
             setLoading(false);
+        }
+    }
+    
+    async function handleStatusChange(taskId, newStatus) {
+        try {
+            await updateTask(taskId, { status: newStatus });
+            await loadTasks(); // I refresh the board
+        } catch (err) {
+            console.error('Failed to update task status:', err);
+            alert('Failed to update task status');
         }
     }
     
@@ -60,6 +76,8 @@ function ProjectView() {
     if (loading) {
         return (
             <div className="project-view loading">
+                <h1>Project Dashboard</h1>
+                <p>Loading board...</p>
                 <div className="spinner"></div>
             </div>
         );
@@ -77,14 +95,36 @@ function ProjectView() {
         <div className="project-view">
             <div className="project-header">
                 <h1>Project Dashboard</h1>
+                <div className="view-toggle">
+                    <button 
+                        className={activeView === 'kanban' ? 'active' : ''}
+                        onClick={() => setActiveView('kanban')}
+                    >
+                        📋 Kanban
+                    </button>
+                    <button 
+                        className={activeView === 'sprint' ? 'active' : ''}
+                        onClick={() => setActiveView('sprint')}
+                    >
+                        📊 Sprint
+                    </button>
+                </div>
                 <ProjectStats stats={stats} />
             </div>
             
-            <KanbanBoard 
-                board={kanbanBoard}
-                onTaskClick={setSelectedTask}
-                onTaskUpdate={handleTaskUpdate}
-            />
+            {activeView === 'kanban' ? (
+                <KanbanBoard 
+                    board={kanbanBoard}
+                    onTaskClick={setSelectedTask}
+                    onStatusChange={handleStatusChange}
+                />
+            ) : (
+                <SprintView 
+                    tasks={allTasks}
+                    stats={stats}
+                    projectName={projectId}
+                />
+            )}
             
             {selectedTask && (
                 <TaskModal

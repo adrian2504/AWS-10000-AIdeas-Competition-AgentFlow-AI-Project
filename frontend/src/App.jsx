@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ProjectView from './pages/ProjectView';
 import NewProject from './pages/NewProject';
+import TeamManagement from './pages/TeamManagement';
 import Header from './components/Header';
 import ConfigCheck from './ConfigCheck';
 import './App.css';
@@ -57,6 +58,10 @@ function AppContent() {
                     <Route 
                         path="/project/:projectId" 
                         element={isAuthenticated ? <ProjectView /> : <Navigate to="/login" />} 
+                    />
+                    <Route 
+                        path="/team" 
+                        element={isAuthenticated ? <TeamManagement /> : <Navigate to="/login" />} 
                     />
                 </Routes>
             </main>
