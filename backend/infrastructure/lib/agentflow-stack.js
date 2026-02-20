@@ -89,6 +89,30 @@ class AgentFlowStack extends cdk.Stack {
             sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING }
         });
         
+        // I create the login tracking table
+        const loginTrackingTable = new dynamodb.Table(this, 'LoginTrackingTable', {
+            tableName: 'AgentFlow-LoginTracking',
+            partitionKey: { name: 'loginId', type: dynamodb.AttributeType.STRING },
+            billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+            removalPolicy: cdk.RemovalPolicy.RETAIN,
+            pointInTimeRecoverySpecification: {
+                pointInTimeRecoveryEnabled: true
+            }
+        });
+        
+        // I add GSIs for querying logins
+        loginTrackingTable.addGlobalSecondaryIndex({
+            indexName: 'UserIdIndex',
+            partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+            sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING }
+        });
+        
+        loginTrackingTable.addGlobalSecondaryIndex({
+            indexName: 'DateIndex',
+            partitionKey: { name: 'date', type: dynamodb.AttributeType.STRING },
+            sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING }
+        });
+        
         // I create the EventBridge event bus for orchestration
         const eventBus = new events.EventBus(this, 'AgentFlowEventBus', {
             eventBusName: 'AgentFlowEventBus'
@@ -127,6 +151,7 @@ class AgentFlowStack extends cdk.Stack {
             PROJECTS_TABLE: projectsTable.tableName,
             TASKS_TABLE: tasksTable.tableName,
             TEAM_TABLE: teamTable.tableName,
+            LOGIN_TRACKING_TABLE: loginTrackingTable.tableName,
             BRIEFS_BUCKET: briefsBucket.bucketName,
             OUTPUTS_BUCKET: outputsBucket.bucketName,
             EVENT_BUS_NAME: eventBus.eventBusName
@@ -198,6 +223,20 @@ class AgentFlowStack extends cdk.Stack {
             environment: commonEnv
         });
         
+        // I create the auth tracker Lambda for login tracking
+        const authTracker = new lambda.Function(this, 'AuthTracker', {
+            functionName: 'AgentFlow-AuthTracker',
+            runtime: lambda.Runtime.NODEJS_18_X,
+            handler: 'index.handler',
+            code: lambda.Code.fromAsset('../lambda/auth-tracker'),
+            timeout: cdk.Duration.seconds(10),
+            memorySize: 256,
+            environment: commonEnv
+        });
+        
+        // I add the auth tracker as a Cognito trigger
+        userPool.addTrigger(cognito.UserPoolOperation.POST_AUTHENTICATION, authTracker);
+        
         // I grant permissions to all Lambda functions
         briefsBucket.grantReadWrite(briefProcessor);
         briefsBucket.grantRead(aiExecutor);
@@ -214,6 +253,9 @@ class AgentFlowStack extends cdk.Stack {
         
         teamTable.grantReadWriteData(teamManager);
         teamTable.grantReadData(taskRouter);
+        
+        loginTrackingTable.grantReadWriteData(authTracker);
+        projectsTable.grantReadData(authTracker);
         
         eventBus.grantPutEventsTo(briefProcessor);
         eventBus.grantPutEventsTo(taskGenerator);

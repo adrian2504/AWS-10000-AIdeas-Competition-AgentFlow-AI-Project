@@ -31,7 +31,25 @@ function NewProject() {
             navigate(`/project/${result.projectId}`);
             
         } catch (err) {
-            setError(err.message || 'Failed to create project');
+            // I handle limit errors specially
+            if (err.message && err.message.includes('limit')) {
+                setError(
+                    <div>
+                        <strong>Project Limit Reached</strong>
+                        <p>You have reached the maximum limit of 1 project per user.</p>
+                        <p>Please delete your existing project from the Dashboard to create a new one.</p>
+                        <button 
+                            className="btn btn-secondary" 
+                            style={{marginTop: '1rem'}}
+                            onClick={() => navigate('/')}
+                        >
+                            Go to Dashboard
+                        </button>
+                    </div>
+                );
+            } else {
+                setError(err.message || 'Failed to create project');
+            }
             setLoading(false);
         }
     }

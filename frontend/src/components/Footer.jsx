@@ -8,7 +8,15 @@ function Footer() {
         <footer className="app-footer">
             <div className="footer-content">
                 <div className="footer-text">
-                    Designed and Developed by <span className="highlight">Adrian Dsouza</span>
+                    Designed and Developed by{' '}
+                    <a 
+                        href="https://www.linkedin.com/in/adrian-dsouza-b84a7a1b0/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="highlight linkedin-link"
+                    >
+                        Adrian Dsouza
+                    </a>
                 </div>
                 <div className="footer-tech">
                     <span className="tech-label">Built with</span>

@@ -29,6 +29,32 @@
     font-size: 1.2rem;
 }
 
+.linkedin-link {
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.linkedin-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #4CAF50;
+    transition: width 0.3s ease;
+}
+
+.linkedin-link:hover::after {
+    width: 100%;
+}
+
+.linkedin-link:hover {
+    color: #66BB6A;
+    transform: translateY(-2px);
+}
+
 .footer-tech {
     display: flex;
     flex-direction: column;

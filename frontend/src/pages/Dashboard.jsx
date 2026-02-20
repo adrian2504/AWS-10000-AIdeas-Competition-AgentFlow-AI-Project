@@ -5,17 +5,30 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProjects } from '../services/api';
 import ProjectCard from '../components/ProjectCard';
+import UsageLimitsDisclaimer from '../components/UsageLimitsDisclaimer';
 import './Dashboard.css';
 
 function Dashboard() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showDisclaimer, setShowDisclaimer] = useState(false);
     const navigate = useNavigate();
     
     useEffect(() => {
         loadProjects();
+        
+        // I show disclaimer on first visit
+        const hasSeenDisclaimer = localStorage.getItem('hasSeenDisclaimer');
+        if (!hasSeenDisclaimer) {
+            setShowDisclaimer(true);
+        }
     }, []);
+    
+    function handleCloseDisclaimer() {
+        localStorage.setItem('hasSeenDisclaimer', 'true');
+        setShowDisclaimer(false);
+    }
     
     async function loadProjects() {
         try {
@@ -40,6 +53,8 @@ function Dashboard() {
     
     return (
         <div className="dashboard">
+            {showDisclaimer && <UsageLimitsDisclaimer onClose={handleCloseDisclaimer} />}
+            
             <div className="dashboard-header">
                 <h1>My Projects</h1>
                 <button 

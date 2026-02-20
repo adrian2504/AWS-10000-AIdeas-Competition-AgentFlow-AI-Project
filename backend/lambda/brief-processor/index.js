@@ -8,11 +8,36 @@ const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-be
 
 const bedrock = new BedrockRuntimeClient({ region: process.env.AWS_REGION });
 
+// I define usage limits
+const LIMITS = {
+    MAX_PROJECTS_PER_USER: 1,
+    ADMIN_EMAIL: 'adriandsouza2504@gmail.com'
+};
+
 exports.handler = async (event) => {
     try {
         // I parse the incoming request
         const body = JSON.parse(event.body);
         const { briefContent, projectName, userId } = body;
+        const userEmail = event.requestContext.authorizer.claims.email;
+        
+        // I check project limit before creating
+        const limitCheck = await checkProjectLimit(userId, userEmail);
+        if (!limitCheck.allowed) {
+            return {
+                statusCode: 403,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({
+                    error: 'Project limit reached',
+                    message: `You have reached the maximum limit of ${limitCheck.limit} project(s). Please delete an existing project to create a new one.`,
+                    currentCount: limitCheck.currentCount,
+                    limit: limitCheck.limit
+                })
+            };
+        }
         
         const projectId = `proj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
@@ -133,4 +158,34 @@ async function publishEvent(detailType, detail) {
             EventBusName: process.env.EVENT_BUS_NAME
         }]
     }).promise();
+}
+
+
+// I check if user has exceeded project limits
+async function checkProjectLimit(userId, email) {
+    // I skip limit check for admin
+    if (email === LIMITS.ADMIN_EMAIL) {
+        return { allowed: true, isAdmin: true };
+    }
+    
+    // I count user's projects
+    const result = await dynamodb.query({
+        TableName: process.env.PROJECTS_TABLE,
+        IndexName: 'UserIdIndex',
+        KeyConditionExpression: 'userId = :userId',
+        ExpressionAttributeValues: {
+            ':userId': userId
+        },
+        Select: 'COUNT'
+    }).promise();
+    
+    const projectCount = result.Count;
+    const allowed = projectCount < LIMITS.MAX_PROJECTS_PER_USER;
+    
+    return {
+        allowed,
+        currentCount: projectCount,
+        limit: LIMITS.MAX_PROJECTS_PER_USER,
+        isAdmin: false
+    };
 }
