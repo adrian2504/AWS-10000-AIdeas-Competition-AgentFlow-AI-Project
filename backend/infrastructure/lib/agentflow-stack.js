@@ -71,6 +71,24 @@ class AgentFlowStack extends cdk.Stack {
             sortKey: { name: 'status', type: dynamodb.AttributeType.STRING }
         });
         
+        // I create the team members table
+        const teamTable = new dynamodb.Table(this, 'TeamTable', {
+            tableName: 'AgentFlow-Team',
+            partitionKey: { name: 'memberId', type: dynamodb.AttributeType.STRING },
+            billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+            removalPolicy: cdk.RemovalPolicy.RETAIN,
+            pointInTimeRecoverySpecification: {
+                pointInTimeRecoveryEnabled: true
+            }
+        });
+        
+        // I add a GSI for querying team members by user
+        teamTable.addGlobalSecondaryIndex({
+            indexName: 'UserIdIndex',
+            partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+            sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING }
+        });
+        
         // I create the EventBridge event bus for orchestration
         const eventBus = new events.EventBus(this, 'AgentFlowEventBus', {
             eventBusName: 'AgentFlowEventBus'
@@ -108,6 +126,7 @@ class AgentFlowStack extends cdk.Stack {
         const commonEnv = {
             PROJECTS_TABLE: projectsTable.tableName,
             TASKS_TABLE: tasksTable.tableName,
+            TEAM_TABLE: teamTable.tableName,
             BRIEFS_BUCKET: briefsBucket.bucketName,
             OUTPUTS_BUCKET: outputsBucket.bucketName,
             EVENT_BUS_NAME: eventBus.eventBusName
@@ -168,6 +187,17 @@ class AgentFlowStack extends cdk.Stack {
             environment: commonEnv
         });
         
+        // I create the team manager Lambda
+        const teamManager = new lambda.Function(this, 'TeamManager', {
+            functionName: 'AgentFlow-TeamManager',
+            runtime: lambda.Runtime.NODEJS_18_X,
+            handler: 'index.handler',
+            code: lambda.Code.fromAsset('../lambda/team-manager'),
+            timeout: cdk.Duration.seconds(30),
+            memorySize: 512,
+            environment: commonEnv
+        });
+        
         // I grant permissions to all Lambda functions
         briefsBucket.grantReadWrite(briefProcessor);
         briefsBucket.grantRead(aiExecutor);
@@ -181,6 +211,9 @@ class AgentFlowStack extends cdk.Stack {
         tasksTable.grantReadWriteData(taskRouter);
         tasksTable.grantReadWriteData(aiExecutor);
         tasksTable.grantReadWriteData(taskManager);
+        
+        teamTable.grantReadWriteData(teamManager);
+        teamTable.grantReadData(taskRouter);
         
         eventBus.grantPutEventsTo(briefProcessor);
         eventBus.grantPutEventsTo(taskGenerator);
@@ -295,6 +328,26 @@ class AgentFlowStack extends cdk.Stack {
         
         const review = api.root.addResource('review');
         review.addMethod('POST', new apigateway.LambdaIntegration(taskManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        const team = api.root.addResource('team');
+        team.addMethod('GET', new apigateway.LambdaIntegration(teamManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        team.addMethod('POST', new apigateway.LambdaIntegration(teamManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        const teamMember = team.addResource('{memberId}');
+        teamMember.addMethod('PUT', new apigateway.LambdaIntegration(teamManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        teamMember.addMethod('DELETE', new apigateway.LambdaIntegration(teamManager), {
             authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO
         });
