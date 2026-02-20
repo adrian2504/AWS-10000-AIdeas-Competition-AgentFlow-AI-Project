@@ -1,7 +1,7 @@
 // I show sprint planning, timeline, progress charts, and team assignments
 // I help visualize project progress and workload distribution
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getTeamMembers } from '../services/api';
 import './SprintView.css';
 
@@ -69,17 +69,19 @@ function SprintView({ tasks, stats, projectName }) {
             
             <div className="sprint-timeline">
                 <h3>Sprint Progress</h3>
-                <div 
-                    className="timeline-bar" 
-                    style={{'--progress': `${progress}%`}}
-                >
-                    <span className="timeline-marker" style={{left: '0%'}}>Start</span>
-                    <span className="timeline-marker" style={{left: `${progress}%`}}>
-                        {Math.round(progress)}%
-                    </span>
-                    <span className="timeline-marker" style={{left: '100%'}}>End</span>
+                <div className="timeline-wrapper">
+                    <div 
+                        className="timeline-bar" 
+                        style={{'--progress': `${progress}%`}}
+                    >
+                        <span className="timeline-marker start-marker">Start</span>
+                        <span className="timeline-marker progress-marker" style={{left: `${progress}%`}}>
+                            {Math.round(progress)}%
+                        </span>
+                        <span className="timeline-marker end-marker">End</span>
+                    </div>
                 </div>
-                <p style={{textAlign: 'center', color: '#666', marginTop: '1rem'}}>
+                <p style={{textAlign: 'center', color: '#666', marginTop: '1.5rem'}}>
                     {completedTasks} of {totalTasks} tasks completed • {daysRemaining} days remaining
                 </p>
             </div>
@@ -103,36 +105,77 @@ function SprintView({ tasks, stats, projectName }) {
                 </div>
             </div>
             
-            <div className="chart-container">
-                <h3>Task Distribution</h3>
-                <div className="progress-chart">
-                    <div style={{flex: 1}}>
-                        <div 
-                            className="chart-bar queued" 
-                            style={{height: `${(stats?.queued / stats?.total) * 100}%`}}
-                        ></div>
-                        <div className="chart-label">Queued<br/>{stats?.queued || 0}</div>
+            <div className="charts-row">
+                <div className="chart-container">
+                    <h3>Task Distribution by Status</h3>
+                    <div className="progress-chart">
+                        <div style={{flex: 1}}>
+                            <div 
+                                className="chart-bar queued" 
+                                style={{height: `${(stats?.queued / stats?.total) * 100}%`}}
+                            ></div>
+                            <div className="chart-label">Queued<br/>{stats?.queued || 0}</div>
+                        </div>
+                        <div style={{flex: 1}}>
+                            <div 
+                                className="chart-bar in-progress" 
+                                style={{height: `${(stats?.inProgress / stats?.total) * 100}%`}}
+                            ></div>
+                            <div className="chart-label">In Progress<br/>{stats?.inProgress || 0}</div>
+                        </div>
+                        <div style={{flex: 1}}>
+                            <div 
+                                className="chart-bar review" 
+                                style={{height: `${(stats?.review / stats?.total) * 100}%`}}
+                            ></div>
+                            <div className="chart-label">Review<br/>{stats?.review || 0}</div>
+                        </div>
+                        <div style={{flex: 1}}>
+                            <div 
+                                className="chart-bar done" 
+                                style={{height: `${(stats?.completed / stats?.total) * 100}%`}}
+                            ></div>
+                            <div className="chart-label">Done<br/>{stats?.completed || 0}</div>
+                        </div>
                     </div>
-                    <div style={{flex: 1}}>
-                        <div 
-                            className="chart-bar in-progress" 
-                            style={{height: `${(stats?.inProgress / stats?.total) * 100}%`}}
-                        ></div>
-                        <div className="chart-label">In Progress<br/>{stats?.inProgress || 0}</div>
-                    </div>
-                    <div style={{flex: 1}}>
-                        <div 
-                            className="chart-bar review" 
-                            style={{height: `${(stats?.review / stats?.total) * 100}%`}}
-                        ></div>
-                        <div className="chart-label">Review<br/>{stats?.review || 0}</div>
-                    </div>
-                    <div style={{flex: 1}}>
-                        <div 
-                            className="chart-bar done" 
-                            style={{height: `${(stats?.completed / stats?.total) * 100}%`}}
-                        ></div>
-                        <div className="chart-label">Done<br/>{stats?.completed || 0}</div>
+                </div>
+                
+                <div className="chart-container">
+                    <h3>AI vs Human Tasks</h3>
+                    <div className="pie-chart-wrapper">
+                        <svg viewBox="0 0 200 200" className="pie-chart">
+                            <circle
+                                cx="100"
+                                cy="100"
+                                r="80"
+                                fill="none"
+                                stroke="#4CAF50"
+                                strokeWidth="40"
+                                strokeDasharray={`${(stats?.aiTasks / stats?.total) * 502.4} 502.4`}
+                                transform="rotate(-90 100 100)"
+                            />
+                            <circle
+                                cx="100"
+                                cy="100"
+                                r="80"
+                                fill="none"
+                                stroke="#2196F3"
+                                strokeWidth="40"
+                                strokeDasharray={`${(stats?.humanTasks / stats?.total) * 502.4} 502.4`}
+                                strokeDashoffset={`-${(stats?.aiTasks / stats?.total) * 502.4}`}
+                                transform="rotate(-90 100 100)"
+                            />
+                        </svg>
+                        <div className="pie-legend">
+                            <div className="legend-item">
+                                <span className="legend-color" style={{background: '#4CAF50'}}></span>
+                                <span>🤖 AI Tasks: {stats?.aiTasks || 0}</span>
+                            </div>
+                            <div className="legend-item">
+                                <span className="legend-color" style={{background: '#2196F3'}}></span>
+                                <span>👤 Human Tasks: {stats?.humanTasks || 0}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -17,20 +17,40 @@
     margin-bottom: 2rem;
 }
 
+.timeline-wrapper {
+    position: relative;
+    padding: 2rem 0;
+}
+
 .timeline-bar {
     height: 40px;
     background: linear-gradient(to right, #4CAF50 0%, #4CAF50 var(--progress), #e0e0e0 var(--progress), #e0e0e0 100%);
     border-radius: 20px;
     position: relative;
-    margin: 1rem 0;
 }
 
 .timeline-marker {
     position: absolute;
-    top: -25px;
-    transform: translateX(-50%);
     font-size: 0.85rem;
     color: #666;
+    white-space: nowrap;
+}
+
+.timeline-marker.start-marker {
+    left: 0;
+    top: -25px;
+}
+
+.timeline-marker.progress-marker {
+    top: -25px;
+    transform: translateX(-50%);
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.timeline-marker.end-marker {
+    right: 0;
+    top: -25px;
 }
 
 .sprint-stats {
@@ -163,4 +183,50 @@
     border-radius: 4px;
     overflow-x: auto;
     font-size: 0.85rem;
+}
+
+
+.charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .charts-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pie-chart-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.pie-chart {
+    width: 200px;
+    height: 200px;
+}
+
+.pie-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
 }

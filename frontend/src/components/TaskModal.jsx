@@ -78,7 +78,10 @@ function TaskModal({ task, onClose, onUpdate, onReview }) {
                         <div className="section">
                             <h3>Output</h3>
                             <div className="task-output">
-                                {task.output}
+                                {typeof task.output === 'string' 
+                                    ? task.output 
+                                    : <pre>{JSON.stringify(task.output, null, 2)}</pre>
+                                }
                             </div>
                         </div>
                     )}

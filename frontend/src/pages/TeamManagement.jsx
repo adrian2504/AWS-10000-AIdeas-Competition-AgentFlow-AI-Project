@@ -1,9 +1,26 @@
-// I manage team members and their skills
+// I manage team members and their skills with tag-based autocomplete
 // I help users build their team and assign tasks effectively
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getTeamMembers, addTeamMember, updateTeamMember, deleteTeamMember } from '../services/api';
 import './TeamManagement.css';
+
+// I provide common skills and roles for autocomplete
+const COMMON_SKILLS = [
+    'React', 'Node.js', 'Python', 'Java', 'TypeScript', 'JavaScript',
+    'AWS', 'Docker', 'Kubernetes', 'MongoDB', 'PostgreSQL', 'MySQL',
+    'GraphQL', 'REST API', 'HTML', 'CSS', 'Tailwind', 'Bootstrap',
+    'Vue.js', 'Angular', 'Django', 'Flask', 'Spring Boot', 'Express',
+    'Git', 'CI/CD', 'Testing', 'Agile', 'Scrum', 'UI/UX Design',
+    'Figma', 'Photoshop', 'Illustrator', 'Product Management'
+];
+
+const COMMON_ROLES = [
+    'Frontend Developer', 'Backend Developer', 'Full Stack Developer',
+    'DevOps Engineer', 'UI/UX Designer', 'Product Manager',
+    'QA Engineer', 'Data Scientist', 'Mobile Developer',
+    'System Architect', 'Tech Lead', 'Scrum Master'
+];
 
 function TeamManagement() {
     const [members, setMembers] = useState([]);
@@ -15,9 +32,13 @@ function TeamManagement() {
         name: '',
         email: '',
         role: '',
-        skills: '',
+        skills: [],
         availability: 'AVAILABLE'
     });
+    
+    const [skillInput, setSkillInput] = useState('');
+    const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
+    const [showRoleSuggestions, setShowRoleSuggestions] = useState(false);
     
     useEffect(() => {
         loadTeamMembers();
@@ -39,7 +60,7 @@ function TeamManagement() {
         
         const memberData = {
             ...formData,
-            skills: formData.skills.split(',').map(s => s.trim()).filter(s => s)
+            skills: formData.skills
         };
         
         try {
@@ -49,7 +70,7 @@ function TeamManagement() {
                 await addTeamMember(memberData);
             }
             
-            setFormData({ name: '', email: '', role: '', skills: '', availability: 'AVAILABLE' });
+            setFormData({ name: '', email: '', role: '', skills: [], availability: 'AVAILABLE' });
             setShowAddForm(false);
             setEditingMember(null);
             await loadTeamMembers();
@@ -58,6 +79,37 @@ function TeamManagement() {
             alert('Failed to save team member');
         }
     }
+    
+    function handleAddSkill(skill) {
+        if (skill && !formData.skills.includes(skill)) {
+            setFormData({...formData, skills: [...formData.skills, skill]});
+        }
+        setSkillInput('');
+        setShowSkillSuggestions(false);
+    }
+    
+    function handleRemoveSkill(skillToRemove) {
+        setFormData({
+            ...formData,
+            skills: formData.skills.filter(s => s !== skillToRemove)
+        });
+    }
+    
+    function handleSkillInputKeyDown(e) {
+        if (e.key === 'Enter' && skillInput.trim()) {
+            e.preventDefault();
+            handleAddSkill(skillInput.trim());
+        }
+    }
+    
+    const filteredSkills = COMMON_SKILLS.filter(skill => 
+        skill.toLowerCase().includes(skillInput.toLowerCase()) &&
+        !formData.skills.includes(skill)
+    );
+    
+    const filteredRoles = COMMON_ROLES.filter(role =>
+        role.toLowerCase().includes(formData.role.toLowerCase())
+    );
     
     async function handleDelete(memberId) {
         if (!window.confirm('Are you sure you want to remove this team member?')) {
@@ -79,14 +131,14 @@ function TeamManagement() {
             name: member.name,
             email: member.email,
             role: member.role,
-            skills: member.skills.join(', '),
+            skills: member.skills || [],
             availability: member.availability
         });
         setShowAddForm(true);
     }
     
     function handleCancel() {
-        setFormData({ name: '', email: '', role: '', skills: '', availability: 'AVAILABLE' });
+        setFormData({ name: '', email: '', role: '', skills: [], availability: 'AVAILABLE' });
         setShowAddForm(false);
         setEditingMember(null);
     }
@@ -133,24 +185,83 @@ function TeamManagement() {
                         
                         <div className="form-group">
                             <label>Role</label>
-                            <input
-                                type="text"
-                                value={formData.role}
-                                onChange={(e) => setFormData({...formData, role: e.target.value})}
-                                placeholder="e.g., Frontend Developer, Designer"
-                                required
-                            />
+                            <div className="autocomplete-wrapper">
+                                <input
+                                    type="text"
+                                    value={formData.role}
+                                    onChange={(e) => {
+                                        setFormData({...formData, role: e.target.value});
+                                        setShowRoleSuggestions(true);
+                                    }}
+                                    onFocus={() => setShowRoleSuggestions(true)}
+                                    onBlur={() => setTimeout(() => setShowRoleSuggestions(false), 200)}
+                                    placeholder="e.g., Frontend Developer"
+                                    required
+                                />
+                                {showRoleSuggestions && filteredRoles.length > 0 && (
+                                    <div className="autocomplete-dropdown">
+                                        {filteredRoles.map(role => (
+                                            <div
+                                                key={role}
+                                                className="autocomplete-item"
+                                                onClick={() => {
+                                                    setFormData({...formData, role});
+                                                    setShowRoleSuggestions(false);
+                                                }}
+                                            >
+                                                {role}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         
                         <div className="form-group">
-                            <label>Skills (comma-separated)</label>
-                            <input
-                                type="text"
-                                value={formData.skills}
-                                onChange={(e) => setFormData({...formData, skills: e.target.value})}
-                                placeholder="e.g., React, Node.js, AWS, Design"
-                                required
-                            />
+                            <label>Skills</label>
+                            <div className="skills-input-wrapper">
+                                <div className="selected-skills">
+                                    {formData.skills.map(skill => (
+                                        <span key={skill} className="skill-tag">
+                                            {skill}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveSkill(skill)}
+                                                className="remove-skill"
+                                            >
+                                                ×
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className="autocomplete-wrapper">
+                                    <input
+                                        type="text"
+                                        value={skillInput}
+                                        onChange={(e) => {
+                                            setSkillInput(e.target.value);
+                                            setShowSkillSuggestions(true);
+                                        }}
+                                        onKeyDown={handleSkillInputKeyDown}
+                                        onFocus={() => setShowSkillSuggestions(true)}
+                                        onBlur={() => setTimeout(() => setShowSkillSuggestions(false), 200)}
+                                        placeholder="Type to add skills..."
+                                    />
+                                    {showSkillSuggestions && filteredSkills.length > 0 && (
+                                        <div className="autocomplete-dropdown">
+                                            {filteredSkills.slice(0, 8).map(skill => (
+                                                <div
+                                                    key={skill}
+                                                    className="autocomplete-item"
+                                                    onClick={() => handleAddSkill(skill)}
+                                                >
+                                                    {skill}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                         
                         <div className="form-group">
