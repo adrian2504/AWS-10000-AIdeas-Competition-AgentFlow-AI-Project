@@ -127,44 +127,67 @@ async function getTasks(projectId) {
 
 // I update a task (used when humans complete their assigned tasks)
 async function updateTask(data) {
-    const { taskId, status, output, notes } = data;
+    const { taskId, status, output, notes, assignedTo } = data;
+    
+    // I build the update expression dynamically
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {
+        ':updatedAt': new Date().toISOString()
+    };
+    
+    // I always update the timestamp
+    updateExpressions.push('updatedAt = :updatedAt');
+    
+    if (status) {
+        updateExpressions.push('#status = :status');
+        expressionAttributeNames['#status'] = 'status';
+        expressionAttributeValues[':status'] = status;
+        
+        // I add completion timestamp if task is done
+        if (status === 'DONE') {
+            updateExpressions.push('completedAt = :completedAt');
+            expressionAttributeValues[':completedAt'] = new Date().toISOString();
+        }
+    }
+    
+    if (output) {
+        updateExpressions.push('#output = :output');
+        expressionAttributeNames['#output'] = 'output';
+        expressionAttributeValues[':output'] = output;
+    }
+    
+    if (notes) {
+        updateExpressions.push('notes = :notes');
+        expressionAttributeValues[':notes'] = notes;
+    }
+    
+    if (assignedTo !== undefined) {
+        updateExpressions.push('assignedTo = :assignedTo');
+        expressionAttributeValues[':assignedTo'] = assignedTo;
+    }
     
     const updateParams = {
         TableName: process.env.TASKS_TABLE,
         Key: { taskId },
-        UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt',
-        ExpressionAttributeNames: {
-            '#status': 'status'
-        },
-        ExpressionAttributeValues: {
-            ':status': status,
-            ':updatedAt': new Date().toISOString()
-        }
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeValues: expressionAttributeValues
     };
     
-    if (output) {
-        updateParams.UpdateExpression += ', #output = :output';
-        updateParams.ExpressionAttributeNames['#output'] = 'output';
-        updateParams.ExpressionAttributeValues[':output'] = output;
-    }
-    
-    if (notes) {
-        updateParams.UpdateExpression += ', notes = :notes';
-        updateParams.ExpressionAttributeValues[':notes'] = notes;
-    }
-    
-    if (status === 'DONE') {
-        updateParams.UpdateExpression += ', completedAt = :completedAt';
-        updateParams.ExpressionAttributeValues[':completedAt'] = new Date().toISOString();
+    // I only add ExpressionAttributeNames if there are any
+    if (Object.keys(expressionAttributeNames).length > 0) {
+        updateParams.ExpressionAttributeNames = expressionAttributeNames;
     }
     
     await dynamodb.update(updateParams).promise();
     
     // I publish an event for task updates
-    await publishEvent('TaskUpdated', {
-        taskId,
-        status
-    });
+    if (status) {
+        await publishEvent('TaskUpdated', {
+            taskId,
+            status
+        });
+    }
     
     return {
         statusCode: 200,

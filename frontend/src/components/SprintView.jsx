@@ -5,12 +5,24 @@ import { useState, useEffect } from 'react';
 import { getTeamMembers } from '../services/api';
 import './SprintView.css';
 
-function SprintView({ tasks, stats, projectName }) {
+function SprintView({ tasks, stats, projectName, onTaskAssign }) {
     const [teamMembers, setTeamMembers] = useState([]);
+    const [taskAssignments, setTaskAssignments] = useState({});
     
     useEffect(() => {
         loadTeamMembers();
     }, []);
+    
+    // I load existing assignments from tasks
+    useEffect(() => {
+        const assignments = {};
+        tasks?.forEach(task => {
+            if (task.assignedTo) {
+                assignments[task.taskId] = task.assignedTo;
+            }
+        });
+        setTaskAssignments(assignments);
+    }, [tasks]);
     
     async function loadTeamMembers() {
         try {
@@ -18,6 +30,13 @@ function SprintView({ tasks, stats, projectName }) {
             setTeamMembers(data.members);
         } catch (err) {
             console.error('Failed to load team members:', err);
+        }
+    }
+    
+    async function handleAssignTask(taskId, memberId) {
+        setTaskAssignments({...taskAssignments, [taskId]: memberId});
+        if (onTaskAssign) {
+            await onTaskAssign(taskId, memberId);
         }
     }
     
@@ -35,28 +54,61 @@ function SprintView({ tasks, stats, projectName }) {
     // I get AI task outputs for preview
     const aiTasks = tasks?.filter(t => t.assignmentType === 'AI' && t.status === 'DONE') || [];
     
-    // I assign team members to human tasks
+    // I get human tasks for assignment
     const humanTasks = tasks?.filter(t => t.assignmentType === 'HUMAN') || [];
-    const memberAssignments = {};
     
+    // I count assignments per member
+    const memberTaskCounts = {};
     teamMembers.forEach(member => {
-        memberAssignments[member.memberId] = {
-            member,
-            tasks: []
-        };
+        memberTaskCounts[member.memberId] = 0;
     });
     
-    // I distribute human tasks among available team members
-    humanTasks.forEach((task, index) => {
-        const availableMembers = teamMembers.filter(m => m.availability === 'AVAILABLE');
-        if (availableMembers.length > 0) {
-            const memberIndex = index % availableMembers.length;
-            const member = availableMembers[memberIndex];
-            if (memberAssignments[member.memberId]) {
-                memberAssignments[member.memberId].tasks.push(task);
-            }
+    humanTasks.forEach(task => {
+        const assignedMemberId = taskAssignments[task.taskId];
+        if (assignedMemberId && memberTaskCounts[assignedMemberId] !== undefined) {
+            memberTaskCounts[assignedMemberId]++;
         }
     });
+    
+    // I calculate weekly sprint progress (simulated data based on task completion)
+    const getWeeklyData = () => {
+        const allTasksWithDates = tasks || [];
+        const now = new Date();
+        const fourWeeksAgo = new Date(now.getTime() - (28 * 24 * 60 * 60 * 1000));
+        
+        // I create 4 weeks of data
+        const weeks = [];
+        for (let i = 0; i < 4; i++) {
+            const weekStart = new Date(fourWeeksAgo.getTime() + (i * 7 * 24 * 60 * 60 * 1000));
+            const weekEnd = new Date(weekStart.getTime() + (7 * 24 * 60 * 60 * 1000));
+            
+            // I count tasks completed in this week
+            const completedInWeek = allTasksWithDates.filter(task => {
+                if (!task.completedAt) return false;
+                const completedDate = new Date(task.completedAt);
+                return completedDate >= weekStart && completedDate < weekEnd;
+            }).length;
+            
+            // I calculate cumulative completion
+            const cumulativeCompleted = allTasksWithDates.filter(task => {
+                if (!task.completedAt) return false;
+                const completedDate = new Date(task.completedAt);
+                return completedDate < weekEnd;
+            }).length;
+            
+            weeks.push({
+                label: `Week ${i + 1}`,
+                completed: completedInWeek,
+                cumulative: cumulativeCompleted,
+                total: totalTasks
+            });
+        }
+        
+        return weeks;
+    };
+    
+    const weeklyData = getWeeklyData();
+    const maxWeeklyTasks = Math.max(...weeklyData.map(w => w.completed), 1);
     
     return (
         <div className="sprint-view">
@@ -105,36 +157,79 @@ function SprintView({ tasks, stats, projectName }) {
                 </div>
             </div>
             
+            <div className="chart-container full-width">
+                <h3>📅 Sprint Weekly Progress</h3>
+                <div className="weekly-chart">
+                    <div className="weekly-chart-bars">
+                        {weeklyData.map((week, index) => (
+                            <div key={index} className="weekly-column">
+                                <div className="weekly-bar-wrapper">
+                                    <div 
+                                        className="weekly-bar" 
+                                        style={{height: `${(week.completed / maxWeeklyTasks) * 100}%`}}
+                                        title={`${week.completed} tasks completed`}
+                                    >
+                                        {week.completed > 0 && (
+                                            <span className="bar-value">{week.completed}</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="weekly-label">
+                                    {week.label}
+                                    <div className="cumulative-text">
+                                        {week.cumulative}/{week.total}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="weekly-legend">
+                        <span>📊 Tasks completed per week</span>
+                        <span style={{color: '#999', fontSize: '0.85rem'}}>
+                            Cumulative: {completedTasks}/{totalTasks} total
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
             <div className="charts-row">
                 <div className="chart-container">
                     <h3>Task Distribution by Status</h3>
                     <div className="progress-chart">
-                        <div style={{flex: 1}}>
-                            <div 
-                                className="chart-bar queued" 
-                                style={{height: `${(stats?.queued / stats?.total) * 100}%`}}
-                            ></div>
+                        <div className="chart-column">
+                            <div className="chart-bar-wrapper">
+                                <div 
+                                    className="chart-bar queued" 
+                                    style={{height: `${stats?.total > 0 ? (stats?.queued / stats?.total) * 100 : 0}%`}}
+                                ></div>
+                            </div>
                             <div className="chart-label">Queued<br/>{stats?.queued || 0}</div>
                         </div>
-                        <div style={{flex: 1}}>
-                            <div 
-                                className="chart-bar in-progress" 
-                                style={{height: `${(stats?.inProgress / stats?.total) * 100}%`}}
-                            ></div>
+                        <div className="chart-column">
+                            <div className="chart-bar-wrapper">
+                                <div 
+                                    className="chart-bar in-progress" 
+                                    style={{height: `${stats?.total > 0 ? (stats?.inProgress / stats?.total) * 100 : 0}%`}}
+                                ></div>
+                            </div>
                             <div className="chart-label">In Progress<br/>{stats?.inProgress || 0}</div>
                         </div>
-                        <div style={{flex: 1}}>
-                            <div 
-                                className="chart-bar review" 
-                                style={{height: `${(stats?.review / stats?.total) * 100}%`}}
-                            ></div>
+                        <div className="chart-column">
+                            <div className="chart-bar-wrapper">
+                                <div 
+                                    className="chart-bar review" 
+                                    style={{height: `${stats?.total > 0 ? (stats?.review / stats?.total) * 100 : 0}%`}}
+                                ></div>
+                            </div>
                             <div className="chart-label">Review<br/>{stats?.review || 0}</div>
                         </div>
-                        <div style={{flex: 1}}>
-                            <div 
-                                className="chart-bar done" 
-                                style={{height: `${(stats?.completed / stats?.total) * 100}%`}}
-                            ></div>
+                        <div className="chart-column">
+                            <div className="chart-bar-wrapper">
+                                <div 
+                                    className="chart-bar done" 
+                                    style={{height: `${stats?.total > 0 ? (stats?.completed / stats?.total) * 100 : 0}%`}}
+                                ></div>
+                            </div>
                             <div className="chart-label">Done<br/>{stats?.completed || 0}</div>
                         </div>
                     </div>
@@ -181,31 +276,82 @@ function SprintView({ tasks, stats, projectName }) {
             </div>
             
             <div className="team-assignments">
-                <h3>Team Assignments ({humanTasks.length} Human Tasks)</h3>
+                <h3>Manual Task Assignment ({humanTasks.length} Human Tasks)</h3>
                 {teamMembers.length === 0 ? (
                     <p style={{color: '#999', marginTop: '1rem'}}>
                         No team members added yet. Go to Team page to add members.
                     </p>
+                ) : humanTasks.length === 0 ? (
+                    <p style={{color: '#999', marginTop: '1rem'}}>
+                        No human tasks in this project.
+                    </p>
                 ) : (
-                    <div className="assignment-list">
-                        {Object.values(memberAssignments).map(({member, tasks}) => (
-                            <div key={member.memberId} className="assignment-item">
-                                <div className="member-info">
-                                    <div className="member-avatar">
-                                        {member.name.charAt(0).toUpperCase()}
+                    <div className="task-assignment-list">
+                        {humanTasks.map(task => {
+                            const assignedMemberId = taskAssignments[task.taskId];
+                            const assignedMember = teamMembers.find(m => m.memberId === assignedMemberId);
+                            
+                            return (
+                                <div key={task.taskId} className="task-assignment-item">
+                                    <div className="task-info">
+                                        <div className="task-title">
+                                            <span className={`status-badge ${task.status.toLowerCase()}`}>
+                                                {task.status}
+                                            </span>
+                                            {task.title}
+                                        </div>
+                                        <div className="task-description">{task.description}</div>
                                     </div>
-                                    <div>
-                                        <div style={{fontWeight: 500}}>{member.name}</div>
-                                        <div style={{fontSize: '0.85rem', color: '#666'}}>
-                                            {member.role}
+                                    <div className="assignment-control">
+                                        <select
+                                            value={assignedMemberId || ''}
+                                            onChange={(e) => handleAssignTask(task.taskId, e.target.value)}
+                                            className="member-select"
+                                        >
+                                            <option value="">Unassigned</option>
+                                            {teamMembers.map(member => (
+                                                <option key={member.memberId} value={member.memberId}>
+                                                    {member.name} ({member.role})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {assignedMember && (
+                                            <div className="assigned-member-info">
+                                                <div className="member-avatar-small">
+                                                    {assignedMember.name.charAt(0).toUpperCase()}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+                
+                {teamMembers.length > 0 && humanTasks.length > 0 && (
+                    <div className="assignment-summary">
+                        <h4>Team Workload</h4>
+                        <div className="workload-list">
+                            {teamMembers.map(member => (
+                                <div key={member.memberId} className="workload-item">
+                                    <div className="member-info">
+                                        <div className="member-avatar">
+                                            {member.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <div style={{fontWeight: 500}}>{member.name}</div>
+                                            <div style={{fontSize: '0.85rem', color: '#666'}}>
+                                                {member.role}
+                                            </div>
                                         </div>
                                     </div>
+                                    <div className="task-count">
+                                        {memberTaskCounts[member.memberId] || 0} {memberTaskCounts[member.memberId] === 1 ? 'task' : 'tasks'}
+                                    </div>
                                 </div>
-                                <div className="task-count">
-                                    {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>

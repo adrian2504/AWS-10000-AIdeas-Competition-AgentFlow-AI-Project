@@ -10,6 +10,7 @@ import ProjectView from './pages/ProjectView';
 import NewProject from './pages/NewProject';
 import TeamManagement from './pages/TeamManagement';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import ConfigCheck from './ConfigCheck';
 import './App.css';
 
@@ -65,6 +66,7 @@ function AppContent() {
                     />
                 </Routes>
             </main>
+            <Footer />
         </>
     );
 }

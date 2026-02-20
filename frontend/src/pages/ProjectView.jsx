@@ -63,6 +63,16 @@ function ProjectView() {
         }
     }
     
+    async function handleTaskAssign(taskId, memberId) {
+        try {
+            await updateTask(taskId, { assignedTo: memberId });
+            await loadTasks(); // I refresh the board
+        } catch (err) {
+            console.error('Failed to assign task:', err);
+            alert('Failed to assign task');
+        }
+    }
+    
     async function handleTaskReview(taskId, approved, feedback) {
         try {
             await reviewTask(taskId, approved, feedback);
@@ -123,6 +133,7 @@ function ProjectView() {
                     tasks={allTasks}
                     stats={stats}
                     projectName={projectId}
+                    onTaskAssign={handleTaskAssign}
                 />
             )}
             

@@ -28,6 +28,7 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
+    min-height: calc(100vh - 200px);
 }
 
 .loading-screen {
