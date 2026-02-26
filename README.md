@@ -4,7 +4,7 @@
 
 AgentFlow is an AI-powered project management system that automatically breaks down project briefs into atomic tasks, intelligently routes them to AI agents or human experts, and tracks execution through a live Kanban dashboard.
 
-## 🎯 What It Does
+## What It Does
 
 1. **Upload a project brief** → AgentFlow analyzes it with AI
 2. **Tasks are generated** → 8-15 atomic, actionable tasks with dependencies
@@ -13,18 +13,18 @@ AgentFlow is an AI-powered project management system that automatically breaks d
 5. **Live tracking** → Real-time Kanban board shows progress
 6. **Quality assurance** → Built-in review loops ensure quality
 
-## ✨ Key Features
+## Key Features
 
-- 📄 **Brief Analysis**: AI extracts deliverables, requirements, and constraints
-- 🤖 **Task Generation**: Automatic breakdown into atomic tasks
-- 🔀 **Intelligent Routing**: AI vs Human based on complexity and risk
-- 📚 **Context Injection (RAG)**: Every task gets relevant documentation
-- ⚡ **AI Execution**: Automated task completion with Bedrock
-- 👥 **Human Interface**: Clean UI for human task completion
-- 🔄 **Review Loop**: Approve or reject with feedback
-- 📊 **Live Dashboard**: Real-time Kanban board with statistics
+- **Brief Analysis**: AI extracts deliverables, requirements, and constraints
+- **Task Generation**: Automatic breakdown into atomic tasks
+- **Intelligent Routing**: AI vs Human based on complexity and risk
+- **Context Injection (RAG)**: Every task gets relevant documentation
+- **AI Execution**: Automated task completion with Bedrock
+- **Human Interface**: Clean UI for human task completion
+- **Review Loop**: Approve or reject with feedback
+- **Live Dashboard**: Real-time Kanban board with statistics
 
-## 🏗️ Architecture
+## Architecture
 
 ### AWS Services
 - **Lambda**: 5 serverless functions for processing
@@ -41,7 +41,7 @@ AgentFlow is an AI-powered project management system that automatically breaks d
 - **Infrastructure**: AWS CDK
 - **AI**: Claude 3 Sonnet via Bedrock
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - AWS Account with Free Tier
@@ -76,16 +76,14 @@ npm start
 
 See [QUICKSTART.md](QUICKSTART.md) for detailed instructions.
 
-## 📖 Documentation
+## Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Get running in 30 minutes
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Detailed deployment guide
-- **[TESTING.md](TESTING.md)** - Comprehensive testing procedures
 - **[PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)** - Architecture deep dive
 - **[BUILD_SUMMARY.md](BUILD_SUMMARY.md)** - What was built and how
 - **[ARTICLE.md](ARTICLE.md)** - Competition article
 
-## 💡 How It Works
+## How It Works
 
 ```
 Project Brief
@@ -105,7 +103,7 @@ Review & Approval
 Done!
 ```
 
-## 🎨 Screenshots
+## Screenshots
 
 ### Dashboard
 ![Dashboard](docs/dashboard-preview.png)
@@ -116,7 +114,7 @@ Done!
 ### Task Details
 ![Task Modal](docs/task-modal-preview.png)
 
-## 💰 Cost
+## Cost
 
 Designed for AWS Free Tier:
 - **Lambda**: FREE (under 1M requests/month)
@@ -127,30 +125,18 @@ Designed for AWS Free Tier:
 
 **Total: $5-10/month**
 
-## 🧪 Testing
 
-```bash
-# Run the test suite
-cd backend/infrastructure
-npm test
 
-# Test individual components
-cd ../lambda/brief-processor
-npm test
-```
+## Security
 
-See [TESTING.md](TESTING.md) for comprehensive testing guide.
+- Cognito authentication with email verification
+- API Gateway with JWT authorization
+- S3 encryption at rest
+- DynamoDB encryption at rest
+- IAM roles with least privilege
+- No sensitive data in logs
 
-## 🔒 Security
-
-- ✅ Cognito authentication with email verification
-- ✅ API Gateway with JWT authorization
-- ✅ S3 encryption at rest
-- ✅ DynamoDB encryption at rest
-- ✅ IAM roles with least privilege
-- ✅ No sensitive data in logs
-
-## 📊 Project Stats
+## Project Stats
 
 - **5** Lambda functions
 - **2** DynamoDB tables
@@ -160,50 +146,14 @@ See [TESTING.md](TESTING.md) for comprehensive testing guide.
 - **~6,100** lines of code
 - **7** documentation files
 
-## 🎯 Use Cases
+## Use Cases
 
 - **Product Managers**: Automate ticket creation and assignment
 - **Startup Founders**: Run fast with small teams
 - **Engineering Teams**: Clear requirements and context
 - **Research Teams**: Manage complex multi-phase projects
 
-## 🚧 Roadmap
-
-### Phase 2
-- WebSocket support for real-time updates
-- Dependency graph visualization
-- Task templates for common projects
-- Analytics dashboard
-
-### Phase 3
-- Multi-tenant workspaces
-- Slack/GitHub integrations
-- Custom workflows
-- Advanced RAG with vector embeddings
-
-See [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) for full roadmap.
-
-## 🤝 Contributing
-
-This project was built for the AWS AIdeas Competition 2025. Contributions welcome after the competition!
-
-## 📝 License
-
-MIT License - see LICENSE file for details
-
-## 🏆 Competition
-
-Built for **AWS AIdeas Competition 2025**
-- **Category**: Workplace Efficiency
-- **Region**: NAMER
-- **Tags**: #aideas-2025 #workplace-efficiency #NAMER
-
-## 📧 Contact
-
-- **GitHub**: [yourusername](https://github.com/yourusername)
-- **Email**: your.email@example.com
-- **Demo**: [Video walkthrough](https://youtube.com/your-demo)
 
 ---
 
-Built with ❤️ using AWS, React, and Claude 3 Sonnet
+Built with ❤️ using AWS, Kiro, and Claude 3 Sonnet
