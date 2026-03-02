@@ -1,57 +1,61 @@
 /* I style the dashboard page */
 
 .dashboard {
-    padding: 20px;
+    padding: 24px;
 }
 
 .dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
 }
 
 .dashboard-header h1 {
-    font-size: 32px;
-    color: #2c3e50;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gray-900);
 }
 
 .empty-state {
     text-align: center;
-    padding: 80px 20px;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 100px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--gray-100);
 }
 
 .empty-icon {
-    font-size: 64px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    opacity: 0.4;
+    color: var(--gray-400);
 }
 
 .empty-state h2 {
-    font-size: 24px;
-    color: #2c3e50;
-    margin-bottom: 10px;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 12px;
 }
 
 .empty-state p {
     font-size: 16px;
-    color: #6c757d;
-    margin-bottom: 30px;
+    color: var(--gray-600);
+    margin-bottom: 32px;
 }
 
 .projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 32px;
 }
 
 @media (max-width: 768px) {
     .dashboard-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 15px;
+        gap: 20px;
     }
     
     .projects-grid {

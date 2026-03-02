@@ -1,66 +1,97 @@
 /* I style project cards on the dashboard */
 
 .project-card {
-    background-color: white;
-    border-radius: 8px;
-    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
     cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid #e9ecef;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.project-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.project-card:hover::before {
+    transform: scaleX(1);
 }
 
 .project-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-6px);
+    border-color: var(--primary-light);
 }
 
 .project-card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 12px;
-    gap: 12px;
+    margin-bottom: 16px;
+    gap: 16px;
 }
 
 .project-card-header h3 {
-    font-size: 18px;
-    color: #2c3e50;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--gray-800);
     flex: 1;
+    line-height: 1.4;
 }
 
 .status-indicator {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 700;
     color: white;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow-sm);
 }
 
 .project-card-body {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .project-brief {
     font-size: 14px;
-    color: #6c757d;
-    line-height: 1.6;
-    margin-bottom: 12px;
+    color: var(--gray-600);
+    line-height: 1.7;
+    margin-bottom: 16px;
 }
 
 .project-stats-mini {
     display: flex;
-    gap: 12px;
+    align-items: center;
+    gap: 8px;
     font-size: 13px;
-    color: #6c757d;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.project-stats-mini svg {
+    flex-shrink: 0;
 }
 
 .project-card-footer {
-    padding-top: 12px;
-    border-top: 1px solid #e9ecef;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-200);
 }
 
 .project-date {
     font-size: 12px;
-    color: #adb5bd;
+    color: var(--gray-500);
+    font-weight: 500;
 }

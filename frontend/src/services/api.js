@@ -110,6 +110,59 @@ export async function deleteTeamMember(memberId) {
     });
 }
 
+// I process audio recording for sprint planning
+export async function processSprintAudio(projectId, audioBlob) {
+    const formData = new FormData();
+    formData.append('audio', audioBlob);
+    formData.append('projectId', projectId);
+    
+    const token = await getAuthToken();
+    
+    console.log('Sending audio to API:', {
+        url: `${API_BASE_URL}/sprint-planning/process-audio`,
+        audioSize: audioBlob.size,
+        projectId
+    });
+    
+    const response = await fetch(`${API_BASE_URL}/sprint-planning/process-audio`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    });
+    
+    console.log('API Response status:', response.status, response.statusText);
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error response:', errorText);
+        let errorMessage = 'Failed to process audio';
+        try {
+            const error = JSON.parse(errorText);
+            errorMessage = error.message || errorMessage;
+        } catch (e) {
+            errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+    console.log('API Success response:', result);
+    return result;
+}
+
+// I create sprint tasks from extracted tasks
+export async function createSprintTasks(projectId, tasks) {
+    return apiRequest('/sprint-planning/create-tasks', {
+        method: 'POST',
+        body: JSON.stringify({
+            projectId,
+            tasks
+        })
+    });
+}
+
 export default {
     createProject,
     getProjects,
@@ -119,5 +172,7 @@ export default {
     getTeamMembers,
     addTeamMember,
     updateTeamMember,
-    deleteTeamMember
+    deleteTeamMember,
+    processSprintAudio,
+    createSprintTasks
 };

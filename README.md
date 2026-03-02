@@ -80,7 +80,6 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed instructions.
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Get running in 30 minutes
 - **[PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)** - Architecture deep dive
-- **[BUILD_SUMMARY.md](BUILD_SUMMARY.md)** - What was built and how
 - **[ARTICLE.md](ARTICLE.md)** - Competition article
 
 ## How It Works

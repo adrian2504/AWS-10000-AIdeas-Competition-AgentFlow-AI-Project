@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import ProjectView from './pages/ProjectView';
 import NewProject from './pages/NewProject';
 import TeamManagement from './pages/TeamManagement';
+import SprintPlanning from './pages/SprintPlanning';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ConfigCheck from './ConfigCheck';
@@ -63,6 +64,10 @@ function AppContent() {
                     <Route 
                         path="/team" 
                         element={isAuthenticated ? <TeamManagement /> : <Navigate to="/login" />} 
+                    />
+                    <Route 
+                        path="/project/:projectId/sprint-planning" 
+                        element={isAuthenticated ? <SprintPlanning /> : <Navigate to="/login" />} 
                     />
                 </Routes>
             </main>

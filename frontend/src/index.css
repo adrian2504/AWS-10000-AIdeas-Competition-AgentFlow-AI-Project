@@ -1,8 +1,50 @@
 /* I provide base styles for the entire application */
 
+:root {
+    /* AWS Cloudscape Color Palette */
+    --aws-squid-ink: #16191f;
+    --aws-slate: #232f3e;
+    --aws-smile-orange: #ff9900;
+    --aws-smile-light: #ffac31;
+    
+    --primary: #0972d3;
+    --primary-dark: #033160;
+    --primary-light: #539fe5;
+    --secondary: #ff9900;
+    --success: #037f0c;
+    --danger: #d91515;
+    --warning: #f89406;
+    --info: #0972d3;
+    
+    --gray-50: #fafafa;
+    --gray-100: #f2f3f3;
+    --gray-200: #e9ebed;
+    --gray-300: #d5dbdb;
+    --gray-400: #aab7b8;
+    --gray-500: #879596;
+    --gray-600: #687078;
+    --gray-700: #414750;
+    --gray-800: #232f3e;
+    --gray-900: #16191f;
+    
+    --shadow-sm: 0 1px 1px 0 rgba(0, 28, 36, 0.3), 1px 1px 1px 0 rgba(0, 28, 36, 0.15), -1px 1px 1px 0 rgba(0, 28, 36, 0.15);
+    --shadow: 0 4px 4px 0 rgba(0, 28, 36, 0.1), 1px 1px 1px 0 rgba(0, 28, 36, 0.1), -1px 1px 1px 0 rgba(0, 28, 36, 0.1);
+    --shadow-md: 0 4px 8px 0 rgba(0, 28, 36, 0.15), 1px 1px 1px 0 rgba(0, 28, 36, 0.1), -1px 1px 1px 0 rgba(0, 28, 36, 0.1);
+    --shadow-lg: 0 8px 16px 0 rgba(0, 28, 36, 0.2), 1px 1px 1px 0 rgba(0, 28, 36, 0.1), -1px 1px 1px 0 rgba(0, 28, 36, 0.1);
+    --shadow-xl: 0 12px 24px 0 rgba(0, 28, 36, 0.25), 1px 1px 1px 0 rgba(0, 28, 36, 0.1), -1px 1px 1px 0 rgba(0, 28, 36, 0.1);
+    
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+}
+
 body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
         'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
         sans-serif;
     -webkit-font-smoothing: antialiased;

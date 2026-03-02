@@ -73,7 +73,11 @@ function Dashboard() {
             
             {projects.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-icon">📋</div>
+                    <div className="empty-icon">
+                        <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
                     <h2>No projects yet</h2>
                     <p>Create your first project to get started with AgentFlow</p>
                     <button 

@@ -2,7 +2,7 @@
 // I show real-time task progress and allow users to interact with tasks
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getTasks, updateTask, reviewTask } from '../services/api';
 import KanbanBoard from '../components/KanbanBoard';
 import SprintView from '../components/SprintView';
@@ -12,6 +12,7 @@ import './ProjectView.css';
 
 function ProjectView() {
     const { projectId } = useParams();
+    const navigate = useNavigate();
     const [kanbanBoard, setKanbanBoard] = useState(null);
     const [allTasks, setAllTasks] = useState([]);
     const [stats, setStats] = useState(null);
@@ -110,13 +111,29 @@ function ProjectView() {
                         className={activeView === 'kanban' ? 'active' : ''}
                         onClick={() => setActiveView('kanban')}
                     >
-                        📋 Kanban
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                            <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h6a1 1 0 100-2H7zm0 4a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
+                        </svg>
+                        Kanban
                     </button>
                     <button 
                         className={activeView === 'sprint' ? 'active' : ''}
                         onClick={() => setActiveView('sprint')}
                     >
-                        📊 Sprint
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                        </svg>
+                        Sprint
+                    </button>
+                    <button 
+                        className="btn-planning"
+                        onClick={() => navigate(`/project/${projectId}/sprint-planning`)}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd"/>
+                        </svg>
+                        Sprint Planning
                     </button>
                 </div>
                 <ProjectStats stats={stats} />

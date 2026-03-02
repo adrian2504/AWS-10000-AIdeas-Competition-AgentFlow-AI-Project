@@ -30,6 +30,25 @@ class AgentFlowStack extends cdk.Stack {
             removalPolicy: cdk.RemovalPolicy.RETAIN
         });
         
+        // I create the S3 bucket for sprint planning audio files
+        const sprintAudioBucket = new s3.Bucket(this, 'SprintAudioBucket', {
+            bucketName: `agentflow-sprint-audio-${this.account}`,
+            encryption: s3.BucketEncryption.S3_MANAGED,
+            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+            removalPolicy: cdk.RemovalPolicy.RETAIN,
+            cors: [
+                {
+                    allowedMethods: [
+                        s3.HttpMethods.GET,
+                        s3.HttpMethods.PUT,
+                        s3.HttpMethods.POST
+                    ],
+                    allowedOrigins: ['*'],
+                    allowedHeaders: ['*']
+                }
+            ]
+        });
+        
         // I create the DynamoDB tables
         const projectsTable = new dynamodb.Table(this, 'ProjectsTable', {
             tableName: 'AgentFlow-Projects',
@@ -154,6 +173,7 @@ class AgentFlowStack extends cdk.Stack {
             LOGIN_TRACKING_TABLE: loginTrackingTable.tableName,
             BRIEFS_BUCKET: briefsBucket.bucketName,
             OUTPUTS_BUCKET: outputsBucket.bucketName,
+            SPRINT_AUDIO_BUCKET: sprintAudioBucket.bucketName,
             EVENT_BUS_NAME: eventBus.eventBusName
         };
         
@@ -234,6 +254,17 @@ class AgentFlowStack extends cdk.Stack {
             environment: commonEnv
         });
         
+        // I create the sprint planner Lambda for audio processing
+        const sprintPlanner = new lambda.Function(this, 'SprintPlanner', {
+            functionName: 'AgentFlow-SprintPlanner',
+            runtime: lambda.Runtime.NODEJS_18_X,
+            handler: 'index.handler',
+            code: lambda.Code.fromAsset('../lambda/sprint-planner'),
+            timeout: cdk.Duration.seconds(300),
+            memorySize: 1024,
+            environment: commonEnv
+        });
+        
         // I add the auth tracker as a Cognito trigger
         userPool.addTrigger(cognito.UserPoolOperation.POST_AUTHENTICATION, authTracker);
         
@@ -256,6 +287,11 @@ class AgentFlowStack extends cdk.Stack {
         
         loginTrackingTable.grantReadWriteData(authTracker);
         projectsTable.grantReadData(authTracker);
+        
+        // I grant permissions to sprint planner
+        sprintAudioBucket.grantReadWrite(sprintPlanner);
+        tasksTable.grantReadWriteData(sprintPlanner);
+        projectsTable.grantReadData(sprintPlanner);
         
         eventBus.grantPutEventsTo(briefProcessor);
         eventBus.grantPutEventsTo(taskGenerator);
@@ -288,6 +324,20 @@ class AgentFlowStack extends cdk.Stack {
         taskGenerator.addToRolePolicy(marketplacePolicy);
         aiExecutor.addToRolePolicy(bedrockPolicy);
         aiExecutor.addToRolePolicy(marketplacePolicy);
+        sprintPlanner.addToRolePolicy(bedrockPolicy);
+        sprintPlanner.addToRolePolicy(marketplacePolicy);
+        
+        // I grant Transcribe permissions to sprint planner
+        const transcribePolicy = new iam.PolicyStatement({
+            actions: [
+                'transcribe:StartTranscriptionJob',
+                'transcribe:GetTranscriptionJob',
+                'transcribe:DeleteTranscriptionJob'
+            ],
+            resources: ['*']
+        });
+        
+        sprintPlanner.addToRolePolicy(transcribePolicy);
         
         // I create EventBridge rules to trigger Lambda functions
         new events.Rule(this, 'TaskGenerationRule', {
@@ -324,6 +374,7 @@ class AgentFlowStack extends cdk.Stack {
         const api = new apigateway.RestApi(this, 'AgentFlowAPI', {
             restApiName: 'AgentFlow API',
             description: 'API for AgentFlow project management',
+            binaryMediaTypes: ['multipart/form-data', 'audio/*', 'application/octet-stream'],
             defaultCorsPreflightOptions: {
                 allowOrigins: ['http://localhost:3000', 'https://*'],
                 allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -390,6 +441,21 @@ class AgentFlowStack extends cdk.Stack {
             authorizationType: apigateway.AuthorizationType.COGNITO
         });
         teamMember.addMethod('DELETE', new apigateway.LambdaIntegration(teamManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        // I add sprint planning endpoints
+        const sprintPlanning = api.root.addResource('sprint-planning');
+        
+        const processAudio = sprintPlanning.addResource('process-audio');
+        processAudio.addMethod('POST', new apigateway.LambdaIntegration(sprintPlanner), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        const createSprintTasks = sprintPlanning.addResource('create-tasks');
+        createSprintTasks.addMethod('POST', new apigateway.LambdaIntegration(sprintPlanner), {
             authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO
         });
