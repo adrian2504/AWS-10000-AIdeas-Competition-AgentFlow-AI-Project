@@ -17,6 +17,13 @@ const s3Client = new S3Client({});
 
 const TASKS_TABLE = process.env.TASKS_TABLE;
 const SPRINT_AUDIO_BUCKET = process.env.SPRINT_AUDIO_BUCKET;
+const USAGE_TRACKING_TABLE = process.env.USAGE_TRACKING_TABLE;
+
+// I define usage limits
+const LIMITS = {
+    MAX_TRANSCRIPTIONS_PER_USER: 6,
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'adriandsouza2504@gmail.com'
+};
 
 exports.handler = async (event) => {
     console.log('Sprint Planner Event:', JSON.stringify(event, null, 2));
@@ -33,9 +40,35 @@ exports.handler = async (event) => {
     
     try {
         const path = event.path || event.rawPath;
+        const userId = event.requestContext?.authorizer?.claims?.sub;
+        const userEmail = event.requestContext?.authorizer?.claims?.email;
         
         if (path.includes('/process-audio')) {
-            return await processAudio(event, headers);
+            // I check transcription limit before processing
+            if (userId && userEmail) {
+                const limitCheck = await checkTranscriptionLimit(userId, userEmail);
+                if (!limitCheck.allowed) {
+                    return {
+                        statusCode: 403,
+                        headers,
+                        body: JSON.stringify({
+                            error: 'Transcription limit reached',
+                            message: `You have reached the maximum limit of ${limitCheck.limit} transcriptions. Please contact support for more quota.`,
+                            currentCount: limitCheck.currentCount,
+                            limit: limitCheck.limit
+                        })
+                    };
+                }
+            }
+            
+            const result = await processAudio(event, headers);
+            
+            // I track successful transcription
+            if (result.statusCode === 200 && userId && userEmail) {
+                await trackUsage(userId, userEmail, 'transcription');
+            }
+            
+            return result;
         } else if (path.includes('/create-tasks')) {
             return await createTasks(event, headers);
         }
@@ -400,4 +433,56 @@ async function streamToString(stream) {
         chunks.push(chunk);
     }
     return Buffer.concat(chunks).toString('utf-8');
+}
+
+
+// I check if user has exceeded transcription limits
+async function checkTranscriptionLimit(userId, email) {
+    // I skip limit check for admin
+    if (email === LIMITS.ADMIN_EMAIL) {
+        return { allowed: true, isAdmin: true };
+    }
+    
+    // I count user's transcriptions
+    const result = await docClient.send(new QueryCommand({
+        TableName: USAGE_TRACKING_TABLE,
+        IndexName: 'UserIdActionIndex',
+        KeyConditionExpression: 'userId = :userId AND #action = :action',
+        ExpressionAttributeNames: {
+            '#action': 'action'
+        },
+        ExpressionAttributeValues: {
+            ':userId': userId,
+            ':action': 'transcription'
+        }
+    }));
+    
+    const transcriptionCount = result.Items?.length || 0;
+    const allowed = transcriptionCount < LIMITS.MAX_TRANSCRIPTIONS_PER_USER;
+    
+    return {
+        allowed,
+        currentCount: transcriptionCount,
+        limit: LIMITS.MAX_TRANSCRIPTIONS_PER_USER,
+        isAdmin: false
+    };
+}
+
+// I track usage for analytics
+async function trackUsage(userId, email, action) {
+    const timestamp = new Date().toISOString();
+    
+    await docClient.send(new PutCommand({
+        TableName: USAGE_TRACKING_TABLE,
+        Item: {
+            usageId: `usage_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            userId,
+            email,
+            action,
+            timestamp,
+            date: timestamp.split('T')[0]
+        }
+    }));
+    
+    console.log(`Usage tracked: ${action} for user ${email}`);
 }

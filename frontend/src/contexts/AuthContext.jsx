@@ -90,6 +90,26 @@ export function AuthProvider({ children }) {
         }
     }
     
+    async function forgotPassword(email) {
+        try {
+            await Auth.forgotPassword(email);
+            return { success: true };
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    async function forgotPasswordSubmit(email, code, newPassword) {
+        try {
+            await Auth.forgotPasswordSubmit(email, code, newPassword);
+            return { success: true };
+        } catch (error) {
+            console.error('Forgot password submit error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
     const value = {
         user,
         isAuthenticated,
@@ -97,7 +117,9 @@ export function AuthProvider({ children }) {
         signIn,
         signUp,
         signOut,
-        confirmSignUp
+        confirmSignUp,
+        forgotPassword,
+        forgotPasswordSubmit
     };
     
     return (

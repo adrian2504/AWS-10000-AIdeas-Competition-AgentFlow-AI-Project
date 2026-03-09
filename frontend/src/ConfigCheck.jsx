@@ -6,10 +6,13 @@ function ConfigCheck() {
         apiUrl: process.env.REACT_APP_API_URL,
         userPoolId: process.env.REACT_APP_USER_POOL_ID,
         clientId: process.env.REACT_APP_USER_POOL_CLIENT_ID,
-        region: process.env.REACT_APP_AWS_REGION
+        region: process.env.REACT_APP_AWS_REGION || process.env.REACT_APP_REGION
     };
     
-    const allConfigured = Object.values(config).every(val => val && val !== 'undefined');
+    // Check if all values exist and are not empty strings or 'undefined' string
+    const allConfigured = Object.values(config).every(val => {
+        return val && val !== 'undefined' && val.trim() !== '';
+    });
     
     if (allConfigured) {
         return null; // Don't show anything if all is good

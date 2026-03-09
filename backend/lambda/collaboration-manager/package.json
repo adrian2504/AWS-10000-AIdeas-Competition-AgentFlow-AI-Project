@@ -1,0 +1,11 @@
+{
+  "name": "collaboration-manager",
+  "version": "1.0.0",
+  "description": "Real-time collaboration manager for AgentFlow",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1691.0",
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0"
+  }
+}

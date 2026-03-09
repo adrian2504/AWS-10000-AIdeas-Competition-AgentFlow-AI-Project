@@ -10,6 +10,7 @@ import ProjectView from './pages/ProjectView';
 import NewProject from './pages/NewProject';
 import TeamManagement from './pages/TeamManagement';
 import SprintPlanning from './pages/SprintPlanning';
+import AdminPortal from './pages/AdminPortal';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ConfigCheck from './ConfigCheck';
@@ -68,6 +69,10 @@ function AppContent() {
                     <Route 
                         path="/project/:projectId/sprint-planning" 
                         element={isAuthenticated ? <SprintPlanning /> : <Navigate to="/login" />} 
+                    />
+                    <Route 
+                        path="/admin" 
+                        element={isAuthenticated ? <AdminPortal /> : <Navigate to="/login" />} 
                     />
                 </Routes>
             </main>

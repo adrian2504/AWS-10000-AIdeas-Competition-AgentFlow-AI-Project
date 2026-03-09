@@ -132,6 +132,55 @@ class AgentFlowStack extends cdk.Stack {
             sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING }
         });
         
+        // I create the usage tracking table
+        const usageTrackingTable = new dynamodb.Table(this, 'UsageTrackingTable', {
+            tableName: 'AgentFlow-UsageTracking',
+            partitionKey: { name: 'usageId', type: dynamodb.AttributeType.STRING },
+            billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+            removalPolicy: cdk.RemovalPolicy.RETAIN,
+            pointInTimeRecoverySpecification: {
+                pointInTimeRecoveryEnabled: true
+            }
+        });
+        
+        // I add GSIs for querying usage
+        usageTrackingTable.addGlobalSecondaryIndex({
+            indexName: 'UserIdActionIndex',
+            partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+            sortKey: { name: 'action', type: dynamodb.AttributeType.STRING }
+        });
+        
+        usageTrackingTable.addGlobalSecondaryIndex({
+            indexName: 'DateIndex',
+            partitionKey: { name: 'date', type: dynamodb.AttributeType.STRING },
+            sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING }
+        });
+        
+        // I create the real-time collaboration table
+        const collaborationTable = new dynamodb.Table(this, 'CollaborationTable', {
+            tableName: 'AgentFlow-Collaboration',
+            partitionKey: { name: 'projectId', type: dynamodb.AttributeType.STRING },
+            sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING },
+            billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+            removalPolicy: cdk.RemovalPolicy.RETAIN,
+            timeToLiveAttribute: 'ttl', // Auto-delete old collaboration data
+            pointInTimeRecoverySpecification: {
+                pointInTimeRecoveryEnabled: true
+            }
+        });
+        
+        // I create the project health table
+        const projectHealthTable = new dynamodb.Table(this, 'ProjectHealthTable', {
+            tableName: 'AgentFlow-ProjectHealth',
+            partitionKey: { name: 'projectId', type: dynamodb.AttributeType.STRING },
+            sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING },
+            billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+            removalPolicy: cdk.RemovalPolicy.RETAIN,
+            pointInTimeRecoverySpecification: {
+                pointInTimeRecoveryEnabled: true
+            }
+        });
+        
         // I create the EventBridge event bus for orchestration
         const eventBus = new events.EventBus(this, 'AgentFlowEventBus', {
             eventBusName: 'AgentFlowEventBus'
@@ -171,10 +220,14 @@ class AgentFlowStack extends cdk.Stack {
             TASKS_TABLE: tasksTable.tableName,
             TEAM_TABLE: teamTable.tableName,
             LOGIN_TRACKING_TABLE: loginTrackingTable.tableName,
+            USAGE_TRACKING_TABLE: usageTrackingTable.tableName,
+            COLLABORATION_TABLE: collaborationTable.tableName,
+            PROJECT_HEALTH_TABLE: projectHealthTable.tableName,
             BRIEFS_BUCKET: briefsBucket.bucketName,
             OUTPUTS_BUCKET: outputsBucket.bucketName,
             SPRINT_AUDIO_BUCKET: sprintAudioBucket.bucketName,
-            EVENT_BUS_NAME: eventBus.eventBusName
+            EVENT_BUS_NAME: eventBus.eventBusName,
+            ADMIN_EMAIL: 'adriandsouza2504@gmail.com'
         };
         
         // I create the brief processor Lambda
@@ -265,6 +318,39 @@ class AgentFlowStack extends cdk.Stack {
             environment: commonEnv
         });
         
+        // I create the admin portal Lambda
+        const adminPortal = new lambda.Function(this, 'AdminPortal', {
+            functionName: 'AgentFlow-AdminPortal',
+            runtime: lambda.Runtime.NODEJS_18_X,
+            handler: 'index.handler',
+            code: lambda.Code.fromAsset('../lambda/admin-portal'),
+            timeout: cdk.Duration.seconds(30),
+            memorySize: 512,
+            environment: commonEnv
+        });
+        
+        // I create the collaboration manager Lambda
+        const collaborationManager = new lambda.Function(this, 'CollaborationManager', {
+            functionName: 'AgentFlow-CollaborationManager',
+            runtime: lambda.Runtime.NODEJS_18_X,
+            handler: 'index.handler',
+            code: lambda.Code.fromAsset('../lambda/collaboration-manager'),
+            timeout: cdk.Duration.seconds(30),
+            memorySize: 512,
+            environment: commonEnv
+        });
+        
+        // I create the project health analyzer Lambda
+        const projectHealth = new lambda.Function(this, 'ProjectHealth', {
+            functionName: 'AgentFlow-ProjectHealth',
+            runtime: lambda.Runtime.NODEJS_18_X,
+            handler: 'index.handler',
+            code: lambda.Code.fromAsset('../lambda/project-health'),
+            timeout: cdk.Duration.seconds(60),
+            memorySize: 1024,
+            environment: commonEnv
+        });
+        
         // I add the auth tracker as a Cognito trigger
         userPool.addTrigger(cognito.UserPoolOperation.POST_AUTHENTICATION, authTracker);
         
@@ -292,6 +378,22 @@ class AgentFlowStack extends cdk.Stack {
         sprintAudioBucket.grantReadWrite(sprintPlanner);
         tasksTable.grantReadWriteData(sprintPlanner);
         projectsTable.grantReadData(sprintPlanner);
+        usageTrackingTable.grantReadWriteData(sprintPlanner);
+        
+        // I grant permissions to admin portal
+        projectsTable.grantReadData(adminPortal);
+        tasksTable.grantReadData(adminPortal);
+        usageTrackingTable.grantReadData(adminPortal);
+        loginTrackingTable.grantReadData(adminPortal);
+        
+        // I grant permissions to collaboration manager
+        collaborationTable.grantReadWriteData(collaborationManager);
+        
+        // I grant permissions to project health analyzer
+        projectHealthTable.grantReadWriteData(projectHealth);
+        projectsTable.grantReadData(projectHealth);
+        tasksTable.grantReadData(projectHealth);
+        teamTable.grantReadData(projectHealth);
         
         eventBus.grantPutEventsTo(briefProcessor);
         eventBus.grantPutEventsTo(taskGenerator);
@@ -326,6 +428,8 @@ class AgentFlowStack extends cdk.Stack {
         aiExecutor.addToRolePolicy(marketplacePolicy);
         sprintPlanner.addToRolePolicy(bedrockPolicy);
         sprintPlanner.addToRolePolicy(marketplacePolicy);
+        projectHealth.addToRolePolicy(bedrockPolicy);
+        projectHealth.addToRolePolicy(marketplacePolicy);
         
         // I grant Transcribe permissions to sprint planner
         const transcribePolicy = new iam.PolicyStatement({
@@ -456,6 +560,81 @@ class AgentFlowStack extends cdk.Stack {
         
         const createSprintTasks = sprintPlanning.addResource('create-tasks');
         createSprintTasks.addMethod('POST', new apigateway.LambdaIntegration(sprintPlanner), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        // I add admin portal endpoints
+        const admin = api.root.addResource('admin');
+        
+        const adminUsers = admin.addResource('users');
+        adminUsers.addMethod('GET', new apigateway.LambdaIntegration(adminPortal), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        const adminUsage = admin.addResource('usage');
+        adminUsage.addMethod('GET', new apigateway.LambdaIntegration(adminPortal), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        const adminLogins = admin.addResource('logins');
+        adminLogins.addMethod('GET', new apigateway.LambdaIntegration(adminPortal), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        // I add collaboration endpoints
+        const collaboration = api.root.addResource('collaboration');
+        
+        const presence = collaboration.addResource('presence');
+        presence.addMethod('POST', new apigateway.LambdaIntegration(collaborationManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        presence.addMethod('GET', new apigateway.LambdaIntegration(collaborationManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        const comments = collaboration.addResource('comments');
+        comments.addMethod('POST', new apigateway.LambdaIntegration(collaborationManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        comments.addMethod('GET', new apigateway.LambdaIntegration(collaborationManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        const activity = collaboration.addResource('activity');
+        activity.addMethod('POST', new apigateway.LambdaIntegration(collaborationManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        activity.addMethod('GET', new apigateway.LambdaIntegration(collaborationManager), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        // I add project health endpoints
+        const health = api.root.addResource('health');
+        
+        const analyzeHealth = health.addResource('analyze');
+        analyzeHealth.addMethod('POST', new apigateway.LambdaIntegration(projectHealth), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        const getHealth = health.addResource('{projectId}');
+        getHealth.addMethod('GET', new apigateway.LambdaIntegration(projectHealth), {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO
+        });
+        
+        const insights = health.addResource('insights').addResource('{projectId}');
+        insights.addMethod('GET', new apigateway.LambdaIntegration(projectHealth), {
             authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO
         });

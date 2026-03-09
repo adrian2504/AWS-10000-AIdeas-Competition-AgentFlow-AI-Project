@@ -22,7 +22,7 @@ function Footer() {
                     <span className="tech-label">Built with</span>
                     <div className="tech-stack">
                         <a 
-                            href="https://kiro.ai" 
+                            href="https://kiro.dev/" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="tech-badge kiro"

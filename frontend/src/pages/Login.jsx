@@ -7,27 +7,54 @@ import './Login.css';
 
 function Login() {
     const [isSignUp, setIsSignUp] = useState(false);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [confirmationCode, setConfirmationCode] = useState('');
+    const [newPassword, setNewPassword] = useState('');
     const [needsConfirmation, setNeedsConfirmation] = useState(false);
+    const [needsPasswordReset, setNeedsPasswordReset] = useState(false);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     
-    const { signIn, signUp, confirmSignUp } = useAuth();
+    const { signIn, signUp, confirmSignUp, forgotPassword, forgotPasswordSubmit } = useAuth();
     
     async function handleSubmit(e) {
         e.preventDefault();
         setError('');
+        setSuccess('');
         setLoading(true);
         
         try {
-            if (needsConfirmation) {
+            if (needsPasswordReset) {
+                // Submit new password with code
+                const result = await forgotPasswordSubmit(email, confirmationCode, newPassword);
+                if (result.success) {
+                    setSuccess('Password reset successful! You can now sign in.');
+                    setNeedsPasswordReset(false);
+                    setIsForgotPassword(false);
+                    setConfirmationCode('');
+                    setNewPassword('');
+                } else {
+                    setError(result.error);
+                }
+            } else if (isForgotPassword) {
+                // Request password reset code
+                const result = await forgotPassword(email);
+                if (result.success) {
+                    setNeedsPasswordReset(true);
+                    setSuccess('Password reset code sent to your email!');
+                } else {
+                    setError(result.error);
+                }
+            } else if (needsConfirmation) {
                 const result = await confirmSignUp(email, confirmationCode);
                 if (result.success) {
                     setNeedsConfirmation(false);
                     setIsSignUp(false);
+                    setSuccess('Email confirmed! You can now sign in.');
                 } else {
                     setError(result.error);
                 }
@@ -65,7 +92,85 @@ function Login() {
                     </div>
                 )}
                 
-                {needsConfirmation ? (
+                {success && (
+                    <div className="success-message">
+                        {success}
+                    </div>
+                )}
+                
+                {needsPasswordReset ? (
+                    <form onSubmit={handleSubmit}>
+                        <h2>Reset Password</h2>
+                        <p>Enter the code sent to {email}</p>
+                        
+                        <div className="form-group">
+                            <input
+                                type="text"
+                                value={confirmationCode}
+                                onChange={(e) => setConfirmationCode(e.target.value)}
+                                placeholder="Confirmation code"
+                                required
+                            />
+                        </div>
+                        
+                        <div className="form-group">
+                            <input
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="New password"
+                                required
+                                minLength={8}
+                            />
+                        </div>
+                        
+                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                            {loading ? 'Resetting...' : 'Reset Password'}
+                        </button>
+                        
+                        <div className="toggle-mode">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setNeedsPasswordReset(false);
+                                    setIsForgotPassword(false);
+                                }}
+                                className="link-button"
+                            >
+                                Back to Sign In
+                            </button>
+                        </div>
+                    </form>
+                ) : isForgotPassword ? (
+                    <form onSubmit={handleSubmit}>
+                        <h2>Forgot Password</h2>
+                        <p>Enter your email to receive a reset code</p>
+                        
+                        <div className="form-group">
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Email"
+                                required
+                            />
+                        </div>
+                        
+                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                            {loading ? 'Sending...' : 'Send Reset Code'}
+                        </button>
+                        
+                        <div className="toggle-mode">
+                            <button
+                                type="button"
+                                onClick={() => setIsForgotPassword(false)}
+                                className="link-button"
+                            >
+                                Back to Sign In
+                            </button>
+                        </div>
+                    </form>
+                ) : needsConfirmation ? (
                     <form onSubmit={handleSubmit}>
                         <h2>Confirm Your Email</h2>
                         <p>We sent a confirmation code to {email}</p>
@@ -123,6 +228,18 @@ function Login() {
                         <button type="submit" className="btn btn-primary" disabled={loading}>
                             {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
                         </button>
+                        
+                        {!isSignUp && (
+                            <div className="forgot-password">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsForgotPassword(true)}
+                                    className="link-button"
+                                >
+                                    Forgot password?
+                                </button>
+                            </div>
+                        )}
                         
                         <div className="toggle-mode">
                             {isSignUp ? (

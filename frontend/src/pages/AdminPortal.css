@@ -1,0 +1,213 @@
+/* I style the admin portal */
+
+.admin-portal {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.admin-portal.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+}
+
+.admin-header {
+    margin-bottom: 32px;
+}
+
+.admin-header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    background: white;
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.admin-tabs button {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-600);
+    transition: all 0.2s ease;
+}
+
+.admin-tabs button.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-tabs button:hover:not(.active) {
+    background: var(--gray-100);
+}
+
+.admin-section {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--gray-200);
+}
+
+.admin-section h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 24px;
+}
+
+.admin-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin: 32px 0 16px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.stat-box {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+}
+
+.stat-box .stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.stat-box .stat-label {
+    font-size: 13px;
+    color: var(--gray-600);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.users-table,
+.logins-table {
+    overflow-x: auto;
+    margin-top: 24px;
+}
+
+.users-table table,
+.logins-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.logins-table th {
+    background: var(--gray-100);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--gray-300);
+}
+
+.users-table td,
+.logins-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 14px;
+    color: var(--gray-700);
+}
+
+.users-table tr:hover,
+.logins-table tr:hover {
+    background: var(--gray-50);
+}
+
+.usage-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.usage-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.usage-date {
+    min-width: 120px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.usage-bars {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.usage-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.usage-bar span {
+    min-width: 180px;
+    font-size: 13px;
+    color: var(--gray-600);
+}
+
+.usage-bar .bar {
+    height: 24px;
+    background: var(--primary);
+    border-radius: 4px;
+    min-width: 20px;
+    transition: width 0.3s ease;
+}
+
+.usage-bar .bar.projects {
+    background: var(--secondary);
+}
+
+@media (max-width: 768px) {
+    .admin-tabs {
+        flex-direction: column;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .usage-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
