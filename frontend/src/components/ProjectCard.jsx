@@ -29,12 +29,6 @@ function ProjectCard({ project, onClick }) {
         <div className="project-card" onClick={onClick}>
             <div className="project-card-header">
                 <h3>{project.projectName}</h3>
-                <span 
-                    className="status-indicator"
-                    style={{ backgroundColor: getStatusColor() }}
-                >
-                    {project.status.replace('_', ' ')}
-                </span>
             </div>
             
             <div className="project-card-body">

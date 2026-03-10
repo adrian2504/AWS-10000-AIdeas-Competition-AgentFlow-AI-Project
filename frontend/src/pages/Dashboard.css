@@ -48,7 +48,8 @@
 .projects-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 32px;
+    gap: 16px; /* Reduced gap since cards now have margin */
+    padding: 8px; /* Added padding to container */
 }
 
 @media (max-width: 768px) {

@@ -229,17 +229,15 @@ function Login() {
                             {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
                         </button>
                         
-                        {!isSignUp && (
-                            <div className="forgot-password">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsForgotPassword(true)}
-                                    className="link-button"
-                                >
-                                    Forgot password?
-                                </button>
-                            </div>
-                        )}
+                        <div className="forgot-password">
+                            <button
+                                type="button"
+                                onClick={() => setIsForgotPassword(true)}
+                                className="link-button"
+                            >
+                                Forgot password?
+                            </button>
+                        </div>
                         
                         <div className="toggle-mode">
                             {isSignUp ? (

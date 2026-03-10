@@ -9,7 +9,8 @@
     border: 1px solid var(--gray-200);
     box-shadow: var(--shadow);
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to visible */
+    margin: 8px; /* Added margin to ensure buttons don't get cut off */
 }
 
 .project-card::before {
