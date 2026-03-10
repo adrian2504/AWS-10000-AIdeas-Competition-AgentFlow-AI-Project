@@ -480,16 +480,19 @@ class AgentFlowStack extends cdk.Stack {
             description: 'API for AgentFlow project management',
             binaryMediaTypes: ['multipart/form-data', 'audio/*', 'application/octet-stream'],
             defaultCorsPreflightOptions: {
-                allowOrigins: ['http://localhost:3000', 'https://*'],
-                allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+                allowOrigins: apigateway.Cors.ALL_ORIGINS,
+                allowMethods: apigateway.Cors.ALL_METHODS,
                 allowHeaders: [
                     'Content-Type',
                     'X-Amz-Date',
                     'Authorization',
                     'X-Api-Key',
-                    'X-Amz-Security-Token'
+                    'X-Amz-Security-Token',
+                    'Access-Control-Allow-Origin',
+                    'Access-Control-Allow-Headers',
+                    'Access-Control-Allow-Methods'
                 ],
-                allowCredentials: true
+                allowCredentials: false
             }
         });
         
